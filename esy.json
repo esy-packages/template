@@ -1,0 +1,26 @@
+{
+  "//": "Keys that start with // are ignored",
+  "name": "esy-hello",
+  "version": "0.0.1000",
+  "// version": "See readme and docs on how to version packages",
+  "description": "hello packaged for esy",
+  "source": "https://github.com/esy/test-hello-c/archive/0.1.0.zip#sha256:e1bd9924eb5d97d99c9b87f9a4a95b734e111cd6dd01464358029c751d57d693",
+  "override": {
+    "buildEnv": {
+      "//": "Only for illustrative purpose. Not a real, useful package",
+      "PREFIX": "$cur__install",
+      "CC_PREFIX": "#{os == 'windows' ? 'x86_64-w64-mingw32-': '' }"
+    },
+    "build": ["./configure", "make"],
+    "install": "make install",
+    "buildsInSource": true,
+    "exportedEnv": {
+      "//": "This is just an example",
+      "PKG_CONFIG_PATH": {
+        "val": "#{self.lib / 'pkgconfig'}",
+        "scope": "global"
+      }
+    },
+    "dependencies": {}
+  }
+}
