@@ -3,12 +3,12 @@ package](https://github.com/ManasJayanth/esy-packages-template/workflows/Build%2
 
 # esy-hello
 
-`esy-hello` is `hello` packaged for [`esy`](https://esy.sh/).
+`esy-hello` is sample package, [`hello`](https://github.com/esy/test-hello-c), packaged for [`esy`](https://esy.sh/).
 
 ## Why
 `esy` can not only fetch and install Reason and OCaml libraries and tools,
 but also those written in C. This extends reproducibility benefits to
-packages not written in C, like `skia`, `libffi`, `pkg-config`
+packages written in C, like `skia`, `libffi`, `pkg-config`
 etc. Users don't have to install them separately, nor have to worry if
 they have installed the correct version. Read more at the docs about
 [benefits for opting for esy packages](https://esy.sh#TODO).
