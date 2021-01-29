@@ -84,3 +84,4 @@ logs:
 # This affect the web and api (not developed yet)
 #i18n:
 #web: en-US
+max_body_size: 1000mb
