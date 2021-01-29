@@ -128,8 +128,10 @@ let {
   override: { build, install, buildsInSource, dependencies },
 } = manifest;
 
-function tar(filePath, destDir) {
-  cp.execSync(`tar -xf ${filePath} -C ${destDir}`);
+function tar(filePath, destDir, gzip) {
+  cp.execSync(`tar -x${gzip ? "z" : ""}f ${filePath} -C ${destDir}`, {
+    stdio: "inherit",
+  });
 }
 
 function unzip(filePath, destDir) {
@@ -143,8 +145,10 @@ download(source)
   .then((pathStr) => {
     switch (path.extname(pathStr)) {
       case ".tgz":
-      case ".tar.gz":
       case ".gz":
+        tar(pathStr, pkgPath, true);
+        break;
+      case ".xz":
         tar(pathStr, pkgPath);
         break;
       case ".zip":
