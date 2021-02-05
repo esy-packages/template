@@ -57,64 +57,105 @@ function fetch(urlStr, urlObj, pathStr, callback) {
   });
 }
 
-function download(urlStrWithChecksum) {
+function uncompress(pathStr, pkgPath) {
+  switch (path.extname(pathStr)) {
+    case ".tgz":
+    case ".gz":
+      tar(pathStr, pkgPath, true);
+      break;
+    case ".xz":
+      tar(pathStr, pkgPath);
+      break;
+    case ".zip":
+      unzip(pathStr, pkgPath);
+      break;
+  }
+}
+
+function computeChecksum(filePath) {
+  return new Promise((resolve, reject) => {
+    let stream = fs.createReadStream(filePath).pipe(crypto.createHash(algo));
+    let buf = "";
+    stream.on("data", (chunk) => {
+      buf += chunk.toString("hex");
+    });
+    stream.on("end", () => {
+      resolve(buf);
+    });
+  });
+}
+
+function download(urlStrWithChecksum, pkgPath) {
   return new Promise(function (resolve, reject) {
     let [urlStr, checksum] = urlStrWithChecksum.split("#");
-    if (!url) {
+    if (!urlStr) {
       reject(`No url in ${urlStr}`);
     } else if (!checksum) {
       reject(`No checksum in ${urlStr}`);
     }
 
-    let [algo, hashStr] = checksum.split(":");
-    if (!hashStr) {
-      hashStr = algo;
-      algo = "sha1";
-    }
-
-    function computeChecksum(filePath) {
-      return new Promise((resolve, reject) => {
-        let stream = fs
-          .createReadStream(filePath)
-          .pipe(crypto.createHash(algo));
-        let buf = "";
-        stream.on("data", (chunk) => {
-          buf += chunk.toString("hex");
-        });
-        stream.on("end", () => {
-          resolve(buf);
-        });
-      });
-    }
     let urlObj = url.parse(urlStr);
     let filename = path.basename(urlObj.path);
     let tmpDownloadedPath = path.join(os.tmpdir(), "esy-package-" + filename);
-    if (fs.existsSync(tmpDownloadedPath)) {
-      computeChecksum(tmpDownloadedPath).then((checksum) => {
-        if (hashStr == checksum) {
-          resolve(tmpDownloadedPath);
+
+    let protoParts = urlObj.protocol.split("+");
+
+    if (protoParts.length > 2) {
+      reject("Unrecognised protocol " + urlObj.protocol);
+    } else if (protoParts.length === 2) {
+      let [a, b] = protoParts;
+      if (a === "git") {
+        let gitUrl = url.format({ ...urlObj, protocol: b });
+
+        if (fs.existsSync(tmpDownloadedPath)) {
+          reject("TODO: run rm -rf");
         } else {
-          fetch(urlStr, urlObj, tmpDownloadedPath, () =>
-            computeChecksum(tmpDownloadedPath).then((checksum) => {
-              if (hashStr == checksum) {
-                resolve(tmpDownloadedPath);
-              } else {
-                reject(`Checksum error: expected ${hashStr} got ${checksum}`);
-              }
-            })
-          );
+          let destDir = path.join(pkgPath, "git-source"); // TODO: not network resilient. Any interruptions will corrupt the path
+          cp.execSync(`git clone ${gitUrl} ${destDir}`);
+          let commitHash = checksum;
+          cp.execSync(`git -C ${destDir} checkout ${commitHash}`);
+          resolve(destDir);
         }
-      });
+      } else {
+        reject("Unrecognised protocol " + urlObj.protocol);
+      }
     } else {
-      fetch(urlStr, urlObj, tmpDownloadedPath, () =>
+      let [algo, hashStr] = checksum.split(":");
+      if (!hashStr) {
+        hashStr = algo;
+        algo = "sha1";
+      }
+
+      if (fs.existsSync(tmpDownloadedPath)) {
         computeChecksum(tmpDownloadedPath).then((checksum) => {
           if (hashStr == checksum) {
+            uncompress(tmpDownloadedPath, pkgPath);
             resolve(tmpDownloadedPath);
           } else {
-            reject(`Checksum error: expected ${hashStr} got ${checksum}`);
+            fetch(urlStr, urlObj, tmpDownloadedPath, () =>
+              computeChecksum(tmpDownloadedPath).then((checksum) => {
+                if (hashStr == checksum) {
+                  uncompress(tmpDownloadedPath, pkgPath);
+                  resolve(tmpDownloadedPath);
+                } else {
+                  reject(`Checksum error: expected ${hashStr} got ${checksum}`);
+                }
+              })
+            );
           }
-        })
-      );
+        });
+      } else {
+        fetch(urlStr, urlObj, tmpDownloadedPath, () =>
+          computeChecksum(tmpDownloadedPath).then((checksum) => {
+            if (hashStr == checksum) {
+              uncompress(tmpDownloadedPath, pkgPath);
+              resolve(tmpDownloadedPath);
+            } else {
+              reject(`Checksum error: expected ${hashStr} got ${checksum}`);
+            }
+          })
+        );
+      }
     }
   });
 }
@@ -143,21 +184,7 @@ function unzip(filePath, destDir) {
 let esyPackageDir = path.join(cwd, "_esy-package");
 mkdirpSync(esyPackageDir);
 let pkgPath = esyPackageDir;
-download(source)
-  .then((pathStr) => {
-    switch (path.extname(pathStr)) {
-      case ".tgz":
-      case ".gz":
-        tar(pathStr, pkgPath, true);
-        break;
-      case ".xz":
-        tar(pathStr, pkgPath);
-        break;
-      case ".zip":
-        unzip(pathStr, pkgPath);
-        break;
-    }
-  })
+download(source, pkgPath)
   .then(() => {
     let entries = fs.readdirSync(pkgPath);
     if (entries.length > 1) {
