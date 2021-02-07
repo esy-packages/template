@@ -34,6 +34,9 @@ new_section "Publishing to local NPM"
 npm publish --registry $REGISTRY_URL $PWD/package.tar.gz
 
 cd esy-test/
+export ESY__PREFIX=$HOME/_esy_test/prefix
+rm -rf $ESY__PREFIX
+mkdir -p $ESY__PREFIX
 esy i --npm-registry $REGISTRY_URL
 esy b
 
