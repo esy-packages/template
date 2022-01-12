@@ -133,7 +133,7 @@ function download(urlStrWithChecksum, pkgPath) {
             resolve(tmpDownloadedPath);
           } else {
             fetch(urlStr, urlObj, tmpDownloadedPath, () =>
-              computeChecksum(tmpDownloadedPath).then((checksum) => {
+              computeChecksum(tmpDownloadedPath, algo).then((checksum) => {
                 if (hashStr == checksum) {
                   uncompress(tmpDownloadedPath, pkgPath);
                   resolve(tmpDownloadedPath);
@@ -146,7 +146,7 @@ function download(urlStrWithChecksum, pkgPath) {
         });
       } else {
         fetch(urlStr, urlObj, tmpDownloadedPath, () =>
-          computeChecksum(tmpDownloadedPath).then((checksum) => {
+          computeChecksum(tmpDownloadedPath, algo).then((checksum) => {
             if (hashStr == checksum) {
               uncompress(tmpDownloadedPath, pkgPath);
               resolve(tmpDownloadedPath);
@@ -219,10 +219,5 @@ download(source, pkgPath)
       `
 _esy
 `
-    );
-    cp.execSync("npm pack", { cwd: pkgPath });
-    fs.renameSync(
-      path.join(pkgPath, `${name}-${version}.tgz`),
-      path.join(cwd, "package.tar.gz")
     );
   });

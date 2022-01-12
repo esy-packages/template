@@ -19,24 +19,37 @@ then
     yarn global add verdaccio
 fi
 
-if ! lsof -i :4873 &> /dev/null;
+VERDACCIO_PID=$(netstat -ano | grep 4873 | awk '{ print $5 }' | head -n1)
+if [[ ! "$VERDACCIO_PID" =~ '^[1-9][0-9]+$' ]]
 then
     new_section "Setting up verdaccio"
-    mkdir -p ~/.config/verdaccio ~/.local/share/verdaccio/storage
-    cp ./.ci/verdaccio-config.yaml ~/.config/verdaccio/config.yaml
-    verdaccio&
+    verdaccio -c ./.ci/verdaccio-config.yaml &
     sleep 1
+    VERDACCIO_PID=$(netstat -ano | grep 4873 | awk '{ print $5 }' | head -n1) # $! doesn't work on Windows
 fi
 
 new_section "Packaging for NPM"
 node scripts/package.js 
 new_section "Publishing to local NPM"
-npm publish --registry $REGISTRY_URL $PWD/package.tar.gz
+cd _esy-package/gnuplot-5.4.3
+yarn publish --registry $REGISTRY_URL --new-version 5.4.3000 --use-yarnrc ../../.ci/yarnrc
+# See https://github.com/verdaccio/verdaccio/issues/212#issuecomment-308578500
+# why yarn instead of npm.
 
-cd esy-test/
+cd ../../esy-test/
 export ESY__PREFIX=$HOME/_esy_test/prefix
 rm -rf $ESY__PREFIX
 mkdir -p $ESY__PREFIX
 esy i --npm-registry $REGISTRY_URL
 esy b
+rm -rf esy.lock
+cd ../
 
+case $(uname) in
+    CYGWIN*|MINGW*)
+	taskkill.exe -pid "$VERDACCIO_PID" -F
+	;;
+    *)
+	kill "$VERDACCIO_PID" 
+esac
+rm -rf .ci/verdaccio-storage
