@@ -12,7 +12,7 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-latest
+ #         - windows-latest
 
     runs-on: ${{ matrix.os }}
 
@@ -30,6 +30,7 @@ jobs:
 
       - name: Run end-to-end tests on the package 
         run: bash ./.ci/steps.sh
+        shell: bash
 
       - uses: actions/upload-artifact@v2
         with:

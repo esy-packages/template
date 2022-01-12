@@ -7,7 +7,7 @@
 #
 
 # path to a directory with all packages
-storage: ~/.local/share/verdaccio/storage
+storage: ./verdaccio-storage
 # path to a directory with plugins to include
 plugins: ./plugins
 
@@ -25,9 +25,9 @@ web:
 # list of the available translations https://github.com/verdaccio/ui/tree/master/i18n/translations
 #   web: en-US
 
-auth:
-  htpasswd:
-    file: ./htpasswd
+# auth:
+#  htpasswd:
+#    file: ./htpasswd
     # Maximum amount of users allowed to register, defaults to "+inf".
     # You can set this to -1 to disable registration.
     # max_users: 1000
