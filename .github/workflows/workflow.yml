@@ -1,7 +1,6 @@
 name: Build and test the esy package
 
 on:
-  - pull_request
   - push
 
 jobs:
