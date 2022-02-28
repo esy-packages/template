@@ -58,6 +58,7 @@ function fetch(urlStr, urlObj, pathStr, callback) {
 }
 
 function uncompress(pathStr, pkgPath) {
+  pathStr = normalisePath(pathStr);
   switch (path.extname(pathStr)) {
     case ".tgz":
     case ".gz":
@@ -72,7 +73,7 @@ function uncompress(pathStr, pkgPath) {
   }
 }
 
-function computeChecksum(filePath) {
+function computeChecksum(filePath, algo) {
   return new Promise((resolve, reject) => {
     let stream = fs.createReadStream(filePath).pipe(crypto.createHash(algo));
     let buf = "";
@@ -83,6 +84,22 @@ function computeChecksum(filePath) {
       resolve(buf);
     });
   });
+}
+
+function normalisePath(path) {
+  let platform;
+  try {
+    platform = cp.execSync("uname").toString().trim();
+  } catch (e) {
+    console.log(e);
+    platform = "Windows";
+  }
+
+  if (/cygwin/i.test(platform) || /mingw/i.test(platform)) {
+    path = cp.execSync(`cygpath -u ${path}`).toString().trim();
+  }
+
+  return path;
 }
 
 function download(urlStrWithChecksum, pkgPath) {
@@ -127,7 +144,7 @@ function download(urlStrWithChecksum, pkgPath) {
       }
 
       if (fs.existsSync(tmpDownloadedPath)) {
-        computeChecksum(tmpDownloadedPath).then((checksum) => {
+        computeChecksum(tmpDownloadedPath, algo).then((checksum) => {
           if (hashStr == checksum) {
             uncompress(tmpDownloadedPath, pkgPath);
             resolve(tmpDownloadedPath);
@@ -160,7 +177,7 @@ function download(urlStrWithChecksum, pkgPath) {
   });
 }
 
-const cwd = process.argv[2] || process.cwd();
+let cwd = process.argv[2] || process.cwd();
 let manifest = require(path.join(cwd, "esy.json"));
 
 let {
