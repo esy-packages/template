@@ -31,10 +31,9 @@ fi
 new_section "Packaging for NPM"
 node scripts/package.js 
 new_section "Publishing to local NPM"
-cd _esy-package/gnuplot-5.4.3
-yarn publish --registry $REGISTRY_URL --new-version 5.4.3000 --use-yarnrc ../../.ci/yarnrc
-# See https://github.com/verdaccio/verdaccio/issues/212#issuecomment-308578500
-# why yarn instead of npm.
+cd _esy-package/readline-8.1
+npm publish --registry $REGISTRY_URL
+# npm still looks for auth token See https://github.com/verdaccio/verdaccio/issues/212#issuecomment-308578500
 
 cd ../../esy-test/
 export ESY__PREFIX=$HOME/_esy_test/prefix
