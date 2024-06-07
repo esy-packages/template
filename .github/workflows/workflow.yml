@@ -10,6 +10,7 @@ jobs:
       matrix:
         os:
           - macos-latest
+          - macos-13
           - ubuntu-latest
           - windows-latest
 
@@ -19,13 +20,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Use Node.js 14.x
+      - name: Use Node.js
         uses: actions/setup-node@v3
-        with:
-          node-version: 14.x
 
-      - name: Install esy, verdaccio and esy-package
-        run: npm install -g @esy-nightly/esy verdaccio esy-package@dev
+      - name: Install esy and esy-package
+        run: npm install -g esy esy-package@latest
 
       - name: Run end-to-end tests on the package 
         run: DEBUG=bale*,verdaccio* esy-package
