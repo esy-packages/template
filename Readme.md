@@ -112,6 +112,10 @@ the `esy.json` and install steps in `esy.install`. Example,
 
 ## Testing and making sure the package works as expected 
 
+> [!NOTE]  
+> There's [esy-package](https://github.com/ManasJayanth/esy-package) in the works to automate
+> parts of this and make writing packages easier.
+
 To test if the package works, we recommend an end-to-end test by
 publishing it to local
 [`verdaccio`](https://github.com/verdaccio/verdaccio), and using the
