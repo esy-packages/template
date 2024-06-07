@@ -1,5 +1,4 @@
-![Build and test the esy
-package](https://github.com/ManasJayanth/esy-packages-template/workflows/Build%20and%20test%20the%20esy%20package/badge.svg)
+[![Build and test the esy package](https://github.com/esy-packages/template/actions/workflows/workflow.yml/badge.svg)](https://github.com/esy-packages/template/actions/workflows/workflow.yml)
 
 # esy-hello
 
