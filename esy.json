@@ -11,7 +11,10 @@
       "PREFIX": "$cur__install",
       "CC_PREFIX": "#{os == 'windows' ? 'x86_64-w64-mingw32-': '' }"
     },
-    "build": ["./configure", "make -j#{self.jobs}"],
+    "build": [
+      "./configure --prefix=#{self.install} #{os == 'windows'? '--host x86_64-w64-mingw32': ''}",
+      "make -j#{self.jobs}"
+    ],
     "install": "make install",
     "buildsInSource": true,
     "exportedEnv": {
